@@ -3,6 +3,10 @@ import { useState } from 'react';
 import { ethers } from 'ethers'
 import Greeter from './artifacts/contracts/Greeter.sol/Greeter.json'
 import Token from './artifacts/contracts/Token.sol/Token.json'
+import LoginButton from "./LoginButton"
+import LogoutButton from "./LogoutButton"
+import Profile from "./Profile"
+import { useAuth0 } from "@auth0/auth0-react";
 
 //Greeter deployed to: 0x8E5F868d350E7b3D1c453E2c1CfD655fE22226fd
 const greeterAddress = "0x8E5F868d350E7b3D1c453E2c1CfD655fE22226fd"
@@ -15,7 +19,8 @@ function App() {
   const [greeting, setGreetingValue] = useState()
   const [userAccount, setUserAccount] = useState()
   const [amount, setAmount] = useState()
-  
+  // passing variables
+  const { user, isAuthenticated, isLoading } = useAuth0();
 
 
   async function requestAccount() {
@@ -40,7 +45,7 @@ function App() {
       }
     }    
   }
-
+/*
   async function getBalance() {
     if (typeof window.ethereum !== 'undefined') {
       const [account] = await window.ethereum.request({ method: 'eth_requestAccounts' })
@@ -50,7 +55,7 @@ function App() {
       console.log("Balance: ", balance.toString());
     }
   }
-
+*/
   async function setGreeting() {
     if (!greeting) return
     if (typeof window.ethereum !== 'undefined') {
@@ -64,7 +69,7 @@ function App() {
       fetchGreeting()
     }
   }
-
+/*
   async function sendCoins() {
     if (typeof window.ethereum !== 'undefined') {
       await requestAccount()
@@ -75,28 +80,39 @@ function App() {
       await transation.wait();
       console.log(`${amount} Coins successfully sent to ${userAccount}`);
     }
-  }
 
+  }
+*/ 
   return (
     <div className="App">
        <div className ="Content">
        <h1> TALON </h1>
+       <p>Create a Talon to link your NFT Collection to Your Twitter Account</p>
     
        </div>
-      <header className="App-header">
+       < LoginButton />
+        < Profile />
+        
+
+     
+              <h3>Your Twitter Account Number:</h3>
+        <p>  {isAuthenticated && (user.sub.slice(8) ) } </p>
+         <div>
         <button onClick={fetchGreeting}>Fetch Greeting</button>
-        <p> current greeting: { greeting  } </p>
+          </div>
         <button onClick={setGreeting}>Set Greeting</button>
         <input onChange={e => setGreetingValue(e.target.value)} placeholder="Set greeting" />
+        <div>
+        <p></p>
          <fetchGreeting/>
+         </div> 
+ 
+ 
+      < LogoutButton />
+      
 
-        <br />
-        <button onClick={getBalance}>Get Balance</button>
-        <button onClick={sendCoins}>Send Coins</button>
-        <input onChange={e => setUserAccount(e.target.value)} placeholder="Account ID" />
-        <input onChange={e => setAmount(e.target.value)} placeholder="Amount" />
-      </header>
     </div>
+    
   );
 }
 
