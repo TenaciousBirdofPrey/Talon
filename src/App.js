@@ -7,7 +7,7 @@ import LogoutButton from "./LogoutButton"
 import Profile from "./Profile"
 import { useAuth0 } from "@auth0/auth0-react";
 
-const randoAddress = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+
 const talonAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
 //set consts
 
@@ -20,6 +20,11 @@ function App() {
   const [name, setName] = useState()
   const [data, setData] = useState()
   const [symbol, setSymbol] = useState()
+//contract queries
+const [queryOwnerOf, setQueryOwnerOf] = useState()
+
+
+
   // passing variables
   const { user, isAuthenticated, isLoading } = useAuth0();
 
@@ -54,9 +59,9 @@ function App() {
       await requestAccount()
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner()
-      console.log("signer: ", provider.getAddress)
+      console.log("signer: ", signer.getAddress( ))
       const contract = new ethers.Contract(talonAddress, Talon.abi, signer)
-      const transaction = await contract.safeMint( randoAddress ,user.sub.slice(8))
+      const transaction = await contract.safeMint( signer.getAddress( ) ,306) //user.sub.slice(8)
       await transaction.wait()
 
       //fetchName()
@@ -70,7 +75,7 @@ async function fetchOwnerOf() {
       try {
         const ownerOf = await contract.ownerOf(user.sub.slice(8))
         console.log('Owner Of ', ownerOf)
-       
+       setQueryOwnerOf(ownerOf)
     
         
       } catch (err) {
@@ -83,7 +88,7 @@ async function fetchOwnerOf() {
     <div className="App">
        <div className ="Content">
        <h1> TALON </h1>
-       <p>Create a Talon to link your NFT Collection to Your Twitter Account</p>
+       <p>Create a Talon to link your Wallet to Your Twitter Account</p>
     
        </div>
        < LoginButton />
@@ -98,6 +103,8 @@ async function fetchOwnerOf() {
      <button onClick={setMint}>Mint</button>
       <div>
      <button onClick={fetchOwnerOf}>Fetch Owner</button>
+     <input onChange={e => setQueryOwnerOf(e.target.value)} placeholder="Enter Address" />
+     <h4>{queryOwnerOf}</h4>
       </div>
 
       <LogoutButton />
