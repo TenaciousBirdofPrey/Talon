@@ -1,24 +1,25 @@
 import './App.css';
 import { useState } from 'react';
 import { ethers } from 'ethers'
-import Greeter from './artifacts/contracts/Greeter.sol/Greeter.json'
-import Token from './artifacts/contracts/Token.sol/Token.json'
+import Talon from './artifacts/contracts/Talon.sol/Talon.json'
 import LoginButton from "./LoginButton"
 import LogoutButton from "./LogoutButton"
 import Profile from "./Profile"
 import { useAuth0 } from "@auth0/auth0-react";
 
-//Greeter deployed to: 0x8E5F868d350E7b3D1c453E2c1CfD655fE22226fd
-const greeterAddress = "0x8E5F868d350E7b3D1c453E2c1CfD655fE22226fd"
-const tokenAddress = "0x94fD79EcA3e995C939876eBAaB4f25cf83bFCC8c"
+const randoAddress = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+const talonAddress = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
 //set consts
 
 
 function App() {
-  //let greetx = 'smokey'
-  const [greeting, setGreetingValue] = useState()
+
+  //const [greeting, setGreetingValue] = useState()
   const [userAccount, setUserAccount] = useState()
   const [amount, setAmount] = useState()
+  const [name, setName] = useState()
+  const [data, setData] = useState()
+  const [symbol, setSymbol] = useState()
   // passing variables
   const { user, isAuthenticated, isLoading } = useAuth0();
 
@@ -27,62 +28,57 @@ function App() {
     await window.ethereum.request({ method: 'eth_requestAccounts' });
   }
 
-  async function fetchGreeting() {
+// call the smart contract, get contract name--mainly to test if connection is live
+  async function fetchName() {
     if (typeof window.ethereum !== 'undefined') {
       const provider = new ethers.providers.Web3Provider(window.ethereum)
-      console.log({ provider })
-      const contract = new ethers.Contract(greeterAddress, Greeter.abi, provider)
+      const contract = new ethers.Contract(talonAddress, Talon.abi, provider)
       try {
-        const data = await contract.greet()
-        console.log('data: ', data)
-        // me
-        setGreetingValue(data)
-        //greetx = data;
-        //console.log('greetx: ', greetx)
-
+        const data = await contract.name()
+        const symbol = await contract.symbol()
+       
+        setData(data)
+        setSymbol(symbol)
+        
       } catch (err) {
         console.log("Error: ", err)
       }
     }    
   }
-/*
-  async function getBalance() {
-    if (typeof window.ethereum !== 'undefined') {
-      const [account] = await window.ethereum.request({ method: 'eth_requestAccounts' })
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const contract = new ethers.Contract(tokenAddress, Token.abi, provider)
-      const balance = await contract.balanceOf(account);
-      console.log("Balance: ", balance.toString());
-    }
-  }
-*/
-  async function setGreeting() {
-    if (!greeting) return
-    if (typeof window.ethereum !== 'undefined') {
-      await requestAccount()
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      console.log({ provider })
-      const signer = provider.getSigner()
-      const contract = new ethers.Contract(greeterAddress, Greeter.abi, signer)
-      const transaction = await contract.setGreeting(greeting)
-      await transaction.wait()
-      fetchGreeting()
-    }
-  }
-/*
-  async function sendCoins() {
-    if (typeof window.ethereum !== 'undefined') {
-      await requestAccount()
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(tokenAddress, Token.abi, signer);
-      const transation = await contract.transfer(userAccount, amount);
-      await transation.wait();
-      console.log(`${amount} Coins successfully sent to ${userAccount}`);
-    }
 
+// call the smart contract, Mint
+  async function setMint() {
+
+   // if (!name) return
+    if (typeof window.ethereum !== 'undefined') {
+      await requestAccount()
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner()
+      console.log("signer: ", provider.getAddress)
+      const contract = new ethers.Contract(talonAddress, Talon.abi, signer)
+      const transaction = await contract.safeMint( randoAddress ,user.sub.slice(8))
+      await transaction.wait()
+
+      //fetchName()
+    }
   }
-*/ 
+// get owner and stuff- takes in tokenID which is twittuser?
+async function fetchOwnerOf() {
+    if (typeof window.ethereum !== 'undefined') {
+      const provider = new ethers.providers.Web3Provider(window.ethereum)
+      const contract = new ethers.Contract(talonAddress, Talon.abi, provider)
+      try {
+        const ownerOf = await contract.ownerOf(user.sub.slice(8))
+        console.log('Owner Of ', ownerOf)
+       
+    
+        
+      } catch (err) {
+        console.log("Error: ", err)
+      }
+    }    
+  }
+
   return (
     <div className="App">
        <div className ="Content">
@@ -92,23 +88,19 @@ function App() {
        </div>
        < LoginButton />
         < Profile />
-        
-
-     
+             
               <h3>Your Twitter Account Number:</h3>
         <p>  {isAuthenticated && (user.sub.slice(8) ) } </p>
-         <div>
-        <button onClick={fetchGreeting}>Fetch Greeting</button>
-          </div>
-        <button onClick={setGreeting}>Set Greeting</button>
-        <input onChange={e => setGreetingValue(e.target.value)} placeholder="Set greeting" />
-        <div>
-        <p></p>
-         <fetchGreeting/>
-         </div> 
- 
- 
-      < LogoutButton />
+        <button onClick={fetchName}>Fetch Contract Info</button>
+     <h4>Contract Name: { data }</h4>
+     <h4>Contract symbol: { symbol }</h4>
+       
+     <button onClick={setMint}>Mint</button>
+      <div>
+     <button onClick={fetchOwnerOf}>Fetch Owner</button>
+      </div>
+
+      <LogoutButton />
       
 
     </div>
@@ -117,11 +109,9 @@ function App() {
 }
 
 export default App;
-// https://www.youtube.com/watch?v=a0osIaAOFSE&t=3296s
+/* 
+ // https://www.youtube.com/watch?v=a0osIaAOFSE&t=3296s
 // https://dev.to/dabit3/the-complete-guide-to-full-stack-ethereum-development-3j13
 
-//Greeter deployed to: 0xcBeD787E8e2b32F679a7e1E31Fb411B3a94E6D24
 
-
-//Greeter deployed to: 0x8E5F868d350E7b3D1c453E2c1CfD655fE22226fd
-//Token deployed to: 0x94fD79EcA3e995C939876eBAaB4f25cf83bFCC8c
+*/

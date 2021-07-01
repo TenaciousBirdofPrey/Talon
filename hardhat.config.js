@@ -18,11 +18,13 @@ task("accounts", "Prints the list of accounts", async () => {
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
+
 module.exports = {
-  solidity: "0.8.3",
-  paths: {
-    artifacts: './src/artifacts',
-  },
+	defaultNetwork: "hardhat",
+	paths: {
+    	artifacts: './src/artifacts',
+  	},
+
   networks: {
     hardhat: {
       chainId: 1337
@@ -32,4 +34,9 @@ module.exports = {
    	accounts: [`0x${process.env.CASPER_PK}`]
    }
   },
+	solidity: {compilers: [   {version: "0.8.0"},{version: "0.8.3"}]}
+
+	//"0.7.3",
 };
+
+
